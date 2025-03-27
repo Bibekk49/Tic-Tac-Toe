@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic-Tac-Toe</title>
+    <style>
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-template-rows: repeat(3, 100px);
+        margin: 20px auto;
+        width: max-content;
+        border: 2px solid #000;
+      }
+      button {
+        width: 100px;
+        height: 100px;
+        font-size: 36px;
+        text-align: center;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        cursor: pointer;
+      }
+      #reset {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        height: 50px;
+        width: 200px;
+      }
+      #reset:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="text-align: center">Tic-Tac-Toe</h1>
+    <h3 id="status" style="text-align: center">X's turn</h3>
+
+    <div class="board">
+      <button id="0" onclick="makeMove(0)"></button>
+      <button id="1" onclick="makeMove(1)"></button>
+      <button id="2" onclick="makeMove(2)"></button>
+      <button id="3" onclick="makeMove(3)"></button>
+      <button id="4" onclick="makeMove(4)"></button>
+      <button id="5" onclick="makeMove(5)"></button>
+      <button id="6" onclick="makeMove(6)"></button>
+      <button id="7" onclick="makeMove(7)"></button>
+      <button id="8" onclick="makeMove(8)"></button>
+    </div>
+
+    <button
+      id="reset"
+      style="display: block; margin: auto"
+      onclick="resetGame()"
+    >
+      Reset Game
+    </button>
+
+    <script>
+      const createGameState = () => ({
+        currentPlayer: "X",
+        board: Array(9).fill(null),
+        gameOver: false,
+      });
+
+      const checkWin = (board) => {
+        const winPatterns = [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8], 
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8], 
+          [0, 4, 8],
+          [2, 4, 6],
+        ];
+        return winPatterns.find(
+          ([a, b, c]) =>
+            board[a] && board[a] === board[b] && board[a] === board[c]
+        );
+      };
+
+      const checkTie = (board) => {
+        return board.every((cell) => cell !== null) && !checkWin(board);
+      };
+
+      const updateBoard = (board, index, player) => {
+        return board.map((cell, i) => (i === index ? player : cell));
+      };
+
+      const switchPlayer = (currentPlayer) =>
+        currentPlayer === "X" ? "O" : "X";
+
+      const renderBoard = (board) => {
+        board.forEach((cell, index) => {
+          const button = document.getElementById(index);
+          button.innerText = cell || "";
+        });
+      };
+
+      const highlightWinningCells = (winningCells) => {
+        winningCells.forEach((index) => {
+          document.getElementById(index).style.backgroundColor = "lightgreen";
+        });
+      };
+
+      const updateStatus = (message) => {
+        document.getElementById("status").innerText = message;
+      };
+
+      const makeMove = (state, index) => {
+        if (state.board[index] || state.gameOver) return state;
+
+        const newBoard = updateBoard(state.board, index, state.currentPlayer);
+        const winner = checkWin(newBoard);
+
+        if (winner) {
+          return {
+            ...state,
+            board: newBoard,
+            gameOver: true,
+            winner: state.currentPlayer,
+          };
+        }
+
+        if (checkTie(newBoard)) {
+          return { ...state, board: newBoard, gameOver: true, winner: null };
+        }
+
+        const nextPlayer = switchPlayer(state.currentPlayer);
+        return { ...state, board: newBoard, currentPlayer: nextPlayer };
+      };
+
+      const resetGame = () => createGameState();
+
+      let gameState = createGameState();
+
+      const handleCellClick = (index) => {
+        gameState = makeMove(gameState, index);
+        renderBoard(gameState.board);
+
+        if (gameState.gameOver) {
+          if (gameState.winner) {
+            highlightWinningCells(checkWin(gameState.board));
+            updateStatus(`${gameState.winner} Wins!`);
+          } else {
+            updateStatus("It's a Tie!");
+          }
+        } else {
+          updateStatus(`${gameState.currentPlayer}'s turn`);
+        }
+      };
+
+      const handleReset = () => {
+        gameState = resetGame();
+        renderBoard(gameState.board);
+        updateStatus(`${gameState.currentPlayer}'s turn`);
+        document.querySelectorAll(".board button").forEach((button) => {
+          button.style.backgroundColor = "";
+        });
+      };
+
+      document.querySelectorAll(".board button").forEach((button, index) => {
+        button.addEventListener("click", () => handleCellClick(index));
+      });
+
+      document.getElementById("reset").addEventListener("click", handleReset);
+
+      renderBoard(gameState.board);
+    </script>
+  </body>
+</html>
